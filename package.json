@@ -1,0 +1,17 @@
+{
+  "name": "block_vampire",
+  "version": "1.0.0",
+  "description": "Block BT vampire by ipset iptables/ip6tables, just for aria2 rpc mode",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon app.js"
+  },
+  "author": "wu67",
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  },
+  "dependencies": {
+    "axios": "^1.6.7",
+    "dayjs": "^1.11.10"
+  }
+}
