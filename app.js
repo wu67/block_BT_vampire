@@ -7,6 +7,7 @@ const config = {
   secret: '123456', // aria2 rpc 密码
   block_keywords: ['XL', 'SD', 'XF', 'QD', 'BN', 'DL'], // 要ban掉的客户端peer简称
   interval: 10000,
+  releaseTime: 1800000, // 若干毫秒后, 将ip移出屏蔽列表. 因为IP本身已加入自动过期的ipset中, 清除程序中的缓存可以稍微降低占用
 }
 // 其实依赖redis是最好的, 但是用来ban ip有点大材小用了, 就干脆用数组凑合, pm2每隔一个小时重启
 const blockList = []
@@ -50,16 +51,24 @@ async function asyncBlockIP(ip, ua) {
         `ipset add vampire_v4 ${ip}`
       )
     }
+    releaseIP()
   } catch (e) {
     if (
       typeof e.stderr === 'string' &&
       e.stderr.indexOf('already added') !== -1
     ) {
       // do nothing
+      console.log(`${ip} already added`)
     } else {
       throw e
     }
   }
+}
+
+function releaseIP() {
+  setTimeout(() => {
+    blockList.shift()
+  }, config.releaseTime)
 }
 
 let isProcessing = false
