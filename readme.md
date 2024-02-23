@@ -58,6 +58,6 @@ ip6tables -I INPUT -j DROP -p tcp --dport 9999:65535 -m set --match-set vampire_
 # 然后安装pm2
 npm i -g pm2
 
-# pm2 启动, 并设置每小时重启, 对应ipset里每小时过期的规则
-pm2 start app.js -c "0 * * * *"
+# pm2 启动
+pm2 start app.js
 ```
