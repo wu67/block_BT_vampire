@@ -107,7 +107,7 @@ async function cron() {
           // 有些奇葩设置peerid为奇奇怪怪的串, 直接ban掉, 很明显搞事的
           if (
             ua === '' ||
-            !/^%(2d|2D|00)/.test(peer.peerId)
+            !/^(a2)?%(2d|00)/i.test(peer.peerId)
           ) {
             await asyncBlockIP(peer.ip, peer.peerId)
           } else if (config.regExp.test(ua)) {
