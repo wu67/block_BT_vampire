@@ -5,7 +5,7 @@ const config = {
   regeExp: /\w+/,
   rpcAddr: 'http://127.0.0.1:6800/jsonrpc', // aria2 rpc 地址
   secret: '123456', // aria2 rpc 密码
-  block_keywords: ['XL', 'SD', 'XF', 'QD', 'BN', 'DL'], // 要ban掉的客户端peer简称
+  block_keywords: ['XL', 'SD', 'XF', 'QD', 'BN', 'DL', 'TS', 'DT', 'GT'], // 要ban掉的客户端peer简称
   interval: 10000,
   releaseTime: 3600000, // 若干毫秒后, 将ip移出屏蔽列表. 因为IP本身已加入自动过期的ipset中, 清除程序中的缓存可以稍微降低占用
 }
@@ -105,10 +105,7 @@ async function cron() {
           const ua = decodePeerID(peer.peerId)
           // console.log(ua, 'ua')
           // 有些奇葩设置peerid为奇奇怪怪的串, 直接ban掉, 很明显搞事的
-          if (
-            ua === '' ||
-            !/^(a2)?%(2d|00)/i.test(peer.peerId)
-          ) {
+          if (ua === '' || !/^(a2)?%(2d|00)/i.test(peer.peerId)) {
             await asyncBlockIP(peer.ip, peer.peerId)
           } else if (config.regExp.test(ua)) {
             await asyncBlockIP(peer.ip, ua)
