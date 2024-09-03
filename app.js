@@ -1,6 +1,5 @@
-const axios = require('axios')
 const dayjs = require('dayjs')
-
+const $fetch = require('./fetch')
 const config = {
   regeExp: /\w+/,
   rpcAddr: 'http://127.0.0.1:6800/jsonrpc', // aria2 rpc 地址
@@ -75,17 +74,17 @@ let isProcessing = false
 async function cron() {
   isProcessing = true
   try {
-    const activeTaskList = await axios.post(config.rpcAddr, {
+    const activeTaskList = await $fetch.post(config.rpcAddr, {
       jsonrpc: '2.0',
       method: 'aria2.tellActive',
       id: `${Math.random()}`,
       params: [`token:${config.secret}`, ['gid', 'status']],
     })
 
-    await asyncProcessingEachItem(activeTaskList.data.result, async (task) => {
+    await asyncProcessingEachItem(activeTaskList.result, async (task) => {
       if (task.status !== 'active') return
 
-      let peerList = await axios.post(config.rpcAddr, {
+      let peerList = await $fetch.post(config.rpcAddr, {
         jsonrpc: '2.0',
         method: 'system.multicall',
         id: `${Math.random()}`,
@@ -98,20 +97,16 @@ async function cron() {
           ],
         ],
       })
-
-      await asyncProcessingEachItem(
-        peerList.data.result[0][0],
-        async (peer) => {
-          const ua = decodePeerID(peer.peerId)
-          // console.log(ua, 'ua')
-          // 有些奇葩设置peerid为奇奇怪怪的串, 直接ban掉, 很明显搞事的
-          if (ua === '' || !/^(a2)?%(2d|00)/i.test(peer.peerId)) {
-            await asyncBlockIP(peer.ip, peer.peerId)
-          } else if (config.regExp.test(ua)) {
-            await asyncBlockIP(peer.ip, ua)
-          }
+      await asyncProcessingEachItem(peerList.result[0][0], async (peer) => {
+        const ua = decodePeerID(peer.peerId)
+        // console.log(peer.ip, ua, 'ua')
+        // 有些奇葩设置peerid为奇奇怪怪的串, 直接ban掉, 很明显搞事的
+        if (ua === '' || !/^(a2)?%(2d|00)/i.test(peer.peerId)) {
+          await asyncBlockIP(peer.ip, peer.peerId)
+        } else if (config.regExp.test(ua)) {
+          await asyncBlockIP(peer.ip, ua)
         }
-      )
+      })
     })
   } catch (e) {
     console.error(e)
