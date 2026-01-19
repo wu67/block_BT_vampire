@@ -4,13 +4,14 @@
   "description": "Block BT vampire by ipset iptables/ip6tables, just for aria2 rpc mode",
   "main": "app.js",
   "scripts": {
+    "dev2": "nodemon app2.js",
     "dev": "nodemon app.js"
   },
   "author": "wu67",
   "devDependencies": {
-    "nodemon": "^3.0.3"
+    "nodemon": "^3.1.11"
   },
   "dependencies": {
-    "dayjs": "^1.11.10"
+    "dayjs": "^1.11.19"
   }
 }

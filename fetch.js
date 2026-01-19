@@ -1,4 +1,5 @@
 const $fetch = async function (path, p) {
+  const timeout = p.timeout || 10000 // 默认 10 秒超时
   const config = {
     method: p.method || 'GET',
   }
@@ -7,10 +8,7 @@ const $fetch = async function (path, p) {
   }
 
   let q = ''
-  if (
-    p.query &&
-    Object.prototype.toString.call(p.query) === '[object Object]'
-  ) {
+  if (p.query && Object.prototype.toString.call(p.query) === '[object Object]') {
     for (const key in p.query) {
       if (Object.getOwnPropertyNames(p.query).includes(key)) {
         q += `&${key}=${encodeURIComponent(p.query[key])}`
@@ -24,7 +22,7 @@ const $fetch = async function (path, p) {
       {
         'Content-Type': 'application/json',
       },
-      p.headers
+      p.headers,
     )
     const jsonREG = /pplication\/json/
     if (!jsonREG.test(p.headers['Content-Type'])) {
@@ -40,17 +38,33 @@ const $fetch = async function (path, p) {
   if (q.length) {
     url += url.indexOf('?') === -1 ? `?${q}` : `&${q}`
   }
-  const result = await fetch(url, config)
-    .then((res) => res.json().catch((e) => console.log(e)))
-    .catch((e) => console.log(e))
 
-  return result
+  // 添加超时控制
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeout)
+  config.signal = controller.signal
+
+  try {
+    const res = await fetch(url, config)
+    clearTimeout(timeoutId)
+
+    if (!res.ok) {
+      throw new Error(`HTTP error! status: ${res.status}`)
+    }
+
+    const result = await res.json()
+    return result
+  } catch (e) {
+    clearTimeout(timeoutId)
+    if (e.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeout}ms: ${url}`)
+    }
+    throw e
+  }
 }
 const temp = {
-  post: (path, data = {}, config = {}) =>
-    $fetch(path, { ...config, body: data, method: 'POST' }),
+  post: (path, data = {}, config = {}) => $fetch(path, { ...config, body: data, method: 'POST' }),
 
-  get: (path, query = {}, config = {}) =>
-    $fetch(path, { ...config, query, method: 'GET' }),
+  get: (path, query = {}, config = {}) => $fetch(path, { ...config, query, method: 'GET' }),
 }
 module.exports = temp
